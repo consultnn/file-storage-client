@@ -1,0 +1,33 @@
+{
+  "name": "serieznyi/file-storage-client",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Maxim Mironyuk",
+      "email": "serieznyi@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=7.0.0"
+  },
+  "config": {
+    "process-timeout": 1800,
+    "secure-http": false,
+    "github-oauth": {
+      "github.com": "bebd05c27868244789f936df6d8874fce8ed92c8"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "serieznyi\\filestorage\\": "src"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  }
+}
