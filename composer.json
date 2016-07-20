@@ -9,16 +9,8 @@
       "role": "Developer"
     }
   ],
-  "minimum-stability": "dev",
   "require": {
     "php": ">=7.0.0"
-  },
-  "config": {
-    "process-timeout": 1800,
-    "secure-http": false,
-    "github-oauth": {
-      "github.com": "bebd05c27868244789f936df6d8874fce8ed92c8"
-    }
   },
   "autoload": {
     "psr-4": {
