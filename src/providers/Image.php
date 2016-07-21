@@ -6,9 +6,8 @@ class Image extends AbstractProvider
 {
     public $defaultImage;
 
-    public function thumbnail($fileIdentifier, $params = [])
+    public function thumbnail($fileIdentifier, $params = [], $options = [])
     {
-        $options = [];
         $translit = '';
         if (isset($options['translit'])) {
             $translit = $options['translit'];
