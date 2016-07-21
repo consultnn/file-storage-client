@@ -101,13 +101,6 @@ class Image extends AbstractProvider
         return $result;
     }
 
-    private function makeUrl()
-    {
-        return $this->owner->server
-            . '/' . $this->owner->projectName
-            . '/' . $this->owner->downloadToken;
-    }
-
     private static function img($src, $options)
     {
         $attributes = '';
