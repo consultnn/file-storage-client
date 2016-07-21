@@ -6,17 +6,6 @@ class Image extends AbstractProvider
 {
     public $defaultImage;
 
-    private static function img($src, $options)
-    {
-        $attributes = '';
-
-        foreach ($options as $key => $value) {
-            $attributes .= sprintf('$s="$s"', $key, $value);
-        }
-
-        return '<img src="'. $src. '" ' . $attributes . ' />';
-    }
-
     public function thumbnail($fileIdentifier, $params = [])
     {
         $options = [];
@@ -69,7 +58,7 @@ class Image extends AbstractProvider
             $this->owner->downloadToken . $filePath . $params . $this->owner->downloadToken
         );
 
-        return str_pad(self::internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
+        return str_pad($this->internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -94,11 +83,11 @@ class Image extends AbstractProvider
 
         ksort($params);
 
-        $encodedParams = self::encodeParams($params);
+        $encodedParams = $this->encodeParams($params);
 
         $result = $this->owner->server
             . '/' . $fileName
-            . '_' . self::internalHash($hash, $encodedParams)
+            . '_' . $this->internalHash($hash, $encodedParams)
             . $encodedParams;
 
         if ($translit) {
@@ -117,5 +106,16 @@ class Image extends AbstractProvider
         return $this->owner->server
             . '/' . $this->owner->projectName
             . '/' . $this->owner->downloadToken;
+    }
+
+    private static function img($src, $options)
+    {
+        $attributes = '';
+
+        foreach ($options as $key => $value) {
+            $attributes .= sprintf('$s="$s"', $key, $value);
+        }
+
+        return '<img src="'. $src. '" ' . $attributes . ' />';
     }
 }
