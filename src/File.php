@@ -1,6 +1,6 @@
 <?php
 
-namespace consultnn\filestorage;
+namespace consultnn\filestorage\client;
 
 use CURLFile;
 

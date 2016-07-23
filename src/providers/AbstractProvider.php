@@ -1,6 +1,6 @@
 <?php
 
-namespace consultnn\filestorage\providers;
+namespace consultnn\filestorage\client\providers;
 
 /**
  * Class AbstractProvider
@@ -9,7 +9,7 @@ namespace consultnn\filestorage\providers;
 abstract class AbstractProvider
 {
     /**
-     * @var \consultnn\filestorage\File
+     * @var \consultnn\filestorage\client\File
      */
     protected $owner;
 
