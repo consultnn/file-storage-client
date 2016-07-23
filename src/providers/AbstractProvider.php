@@ -1,6 +1,6 @@
 <?php
 
-namespace serieznyi\filestorage\providers;
+namespace consultnn\filestorage\providers;
 
 /**
  * Class AbstractProvider
@@ -9,7 +9,7 @@ namespace serieznyi\filestorage\providers;
 abstract class AbstractProvider
 {
     /**
-     * @var \serieznyi\filestorage\File
+     * @var \consultnn\filestorage\File
      */
     protected $owner;
 

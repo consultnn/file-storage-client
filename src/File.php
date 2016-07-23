@@ -1,6 +1,6 @@
 <?php
 
-namespace serieznyi\filestorage;
+namespace consultnn\filestorage;
 
 use CURLFile;
 

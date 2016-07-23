@@ -1,5 +1,5 @@
 {
-  "name": "serieznyi/file-storage-client",
+  "name": "consultnn/file-storage-client",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "serieznyi\\filestorage\\": "src"
+      "consultnn\\filestorage\\": "src"
     }
   },
   "extra": {
