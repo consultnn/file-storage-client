@@ -128,4 +128,76 @@ class File
 
         return $this->send();
     }
+
+    /**
+     * @param $hash
+     * @param array $params
+     * @return null|string
+     */
+    public function get($hash, array $params = [])
+    {
+        if (!$hash) {
+            return null;
+        }
+
+        $pathInfo = pathinfo($hash);
+        $fileName = $pathInfo['filename'];
+
+        if (!empty($params['f'])) {
+            $pathInfo['extension'] = $params['f'];
+            unset($params['f']);
+        }
+
+        ksort($params);
+
+        $encodedParams = $this->encodeParams($params);
+
+        $result = $this->server
+            . '/' . $fileName
+            . '_' . $this->internalHash($hash, $encodedParams)
+            . $encodedParams;
+
+        if (isset($params['translit'])) {
+            $result .= '/' . $params['translit'];
+        }
+
+        if (!empty($pathInfo['extension'])) {
+            $result .='.'.$pathInfo['extension'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $params
+     * @return string
+     */
+    private function encodeParams(array $params)
+    {
+        $result = '';
+        foreach ($params as $key => $value) {
+            $result .= '_'.$key.'-'.$value;
+        }
+        return $result;
+    }
+
+    private static function internalBaseConvert($number, $fromBase, $toBase)
+    {
+        return gmp_strval(gmp_init($number, $fromBase), $toBase);
+    }
+
+    /**
+     * @param $filePath
+     * @param $params
+     * @return string
+     */
+    private function internalHash($filePath, $params)
+    {
+        $hash = hash(
+            'crc32',
+            $this->downloadToken . $filePath . $params . $this->downloadToken
+        );
+
+        return str_pad($this->internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
+    }
 }
