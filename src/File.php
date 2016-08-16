@@ -116,7 +116,9 @@ class File
 
     public function uploadByUrl($urls)
     {
-        $urls = (array) $urls;
+        $urls = [
+            'urls' => (array) $urls
+        ];
 
         $curl = $this->getCurl();
 
