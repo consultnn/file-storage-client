@@ -1,6 +1,7 @@
 {
   "name": "consultnn/file-storage-client",
   "type": "library",
+  "description": "Component for helping upload files into file-storage service",
   "license": "MIT",
   "authors": [
     {
