@@ -6,53 +6,12 @@ use CURLFile;
 
 class File
 {
-    private $_providers;
     private $_curl;
 
     public $server;
     public $projectName;
     public $uploadToken;
     public $downloadToken;
-
-    public function __construct()
-    {
-        $this->_providers = [];
-    }
-
-    public function __call($name, $arguments)
-    {
-        foreach ($this->_providers as $object) {
-            if (method_exists($object, $name)) {
-                return call_user_func_array([$object, $name], $arguments);
-            }
-        }
-
-        throw new \Exception('Method `'.$name.'` not exists');
-    }
-
-    public function __get($name)
-    {
-        foreach ($this->_providers as $object) {
-            if (property_exists($object, $name)) {
-                return $object->$name;
-            }
-        }
-
-        throw new \Exception('Property `'.$name.'` not exists');
-    }
-
-    public function addProvider($className, $params = [])
-    {
-        $providerObject = new $className($this);
-
-        foreach ($params as $property => $value) {
-            $providerObject->$property = $value;
-        }
-
-        $this->_providers[$className] = $providerObject;
-
-        return $this;
-    }
 
     private function send()
     {
@@ -159,7 +118,7 @@ class File
             . '_' . $this->internalHash($hash, $encodedParams)
             . $encodedParams;
 
-        if (isset($params['translit'])) {
+        if (array_key_exists('translit', $params)) {
             $result .= '/' . $params['translit'];
         }
 
@@ -200,6 +159,6 @@ class File
             $this->downloadToken . $filePath . $params . $this->downloadToken
         );
 
-        return str_pad($this->internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
+        return str_pad(self::internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
     }
 }
