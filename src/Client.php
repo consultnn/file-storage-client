@@ -2,92 +2,96 @@
 
 namespace consultnn\filestorage\client;
 
-use CURLFile;
-
-class File
+class Client
 {
-    private $_curl;
+    private $guzzle;
 
-    public $server;
+    /**
+     * @var string
+     */
+    public $serverName;
+
+    /**
+     * @var string
+     */
     public $projectName;
+
+    /**
+     * @var string
+     */
     public $uploadToken;
+
+    /**
+     * @var string
+     */
     public $downloadToken;
 
-    private function send()
+    public function __construct()
     {
-        $curl = $this->getCurl();
-
-        $data = curl_exec($curl);
-
-        if (curl_errno($curl)) {
-            throw new \Exception(curl_error($curl), curl_errno($curl));
-        }
-
-        return json_decode($data, true);
+        $this->guzzle = new \GuzzleHttp\Client();
     }
 
     private function makeUploadUrl()
     {
-        return trim($this->server, '/')
-            . '/upload'
-            . '/' . $this->projectName
-            . '/' . $this->uploadToken;
+        return trim($this->serverName, '/')
+        . '/upload'
+        . '/' . $this->projectName
+        . '/' . $this->uploadToken;
     }
 
-    protected function getCurl()
+    public function upload($files)
     {
-        if ($this->_curl) {
-            return $this->_curl;
+        $files = (array) $files;
+
+        $multipart = [];
+        foreach ($files as $file) {
+            $multipart[] = [
+                'name'     => basename($file),
+                'contents' => fopen($file, 'r')
+            ];
         }
 
-        $this->_curl = curl_init();
-
-        curl_setopt_array(
-            $this->_curl,
-            [
-                CURLOPT_TIMEOUT_MS => 5000,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_FOLLOWLOCATION => false,
-                CURLOPT_POST => true,
-                CURLOPT_USERAGENT => 'PHP ' . __CLASS__,
-                CURLOPT_ENCODING => 'gzip, deflate',
-                CURLOPT_URL => $this->makeUploadUrl(),
-            ]
+        $response = $this->guzzle->request(
+            'POST',
+            $this->makeUploadUrl(),
+            ['multipart' => $multipart]
         );
 
-        return $this->_curl;
-    }
-
-    public function upload($filePath)
-    {
-        $filePath = (array) $filePath;
-        $curl = $this->getCurl();
-        $data = [];
-
-        foreach ($filePath as $key => $file) {
-            $data[basename($file)] = new CurlFile( $file );
+        if ($response->getStatusCode() === 200) {
+            return json_decode($response->getBody(), true);
         }
-
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-
-        return $this->send();
     }
 
+    /**
+     * @param array $urls
+     * @return array
+     */
     public function uploadByUrl($urls)
     {
-        $urls = [
-            'urls' => (array) $urls
-        ];
+        $urls = (array) $urls;
+        $urls = array_combine($urls, $urls);
 
-        $curl = $this->getCurl();
+        $files = [];
+        foreach ($urls as $key => $url) {
+            $tempPath = tempnam('/tmp', 'file_storage_');
 
-        curl_setopt(
-            $curl,
-            CURLOPT_POSTFIELDS,
-            http_build_query($urls)
+            try {
+                $this->guzzle->request('GET', $url, ['sink' => $tempPath]);
+            } catch (\Exception $e) {
+                $urls[basename($key)] = false;
+                unset($urls[$key]);
+
+                continue;
+            }
+
+            $files[] = $tempPath;
+            unset($urls[$key]);
+        }
+
+        return array_merge(
+            $files ? $this->upload($files) : [],
+            $urls
         );
-
-        return $this->send();
     }
 
     /**
@@ -113,7 +117,7 @@ class File
 
         $encodedParams = $this->encodeParams($params);
 
-        $result = $this->server
+        $result = $this->serverName
             . '/' . $fileName
             . '_' . $this->internalHash($hash, $encodedParams)
             . $encodedParams;
