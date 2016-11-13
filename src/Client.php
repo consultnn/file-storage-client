@@ -31,7 +31,7 @@ class Client
         $this->guzzle = new \GuzzleHttp\Client();
     }
 
-    private function makeUploadUrl()
+    public function getUploadUrl()
     {
         return trim($this->serverName, '/')
         . '/upload'
@@ -53,7 +53,7 @@ class Client
 
         $response = $this->guzzle->request(
             'POST',
-            $this->makeUploadUrl(),
+            $this->getUploadUrl(),
             ['multipart' => $multipart]
         );
 
