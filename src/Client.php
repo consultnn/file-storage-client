@@ -26,17 +26,17 @@ class Client
      */
     public $downloadToken;
 
-    public function __construct()
+    public function __construct($guzzle = ['timeout' => 15])
     {
-        $this->guzzle = new \GuzzleHttp\Client();
+        $this->guzzle = new \GuzzleHttp\Client($guzzle);
     }
 
     public function getUploadUrl()
     {
         return trim($this->serverName, '/')
-        . '/upload'
-        . '/' . $this->projectName
-        . '/' . $this->uploadToken;
+                . '/upload'
+                . '/' . $this->projectName
+                . '/' . $this->uploadToken;
     }
 
     public function upload($files)
