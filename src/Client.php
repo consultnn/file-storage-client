@@ -102,7 +102,8 @@ class Client
         }
 
         $urlBuilder = UrlBuilderFactory::create('', $this->downloadSignKey);
-        return $urlBuilder->getUrl($hash, $params);
+
+        return $this->serverName . $urlBuilder->getUrl($hash, $params);
     }
 
     /**
