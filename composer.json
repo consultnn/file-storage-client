@@ -12,7 +12,8 @@
   ],
   "require": {
     "php": ">=7.0.0",
-    "guzzle/guzzle": "~3.9.3"
+    "league/glide": "^1.2",
+    "guzzlehttp/guzzle": "^6.2"
   },
   "autoload": {
     "psr-4": {

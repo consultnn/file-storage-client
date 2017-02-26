@@ -2,10 +2,11 @@
 
 namespace consultnn\filestorage\client;
 
+use GuzzleHttp\Client as GuzzleClient;
+use League\Glide\Urls\UrlBuilderFactory;
+
 class Client
 {
-    private $guzzle;
-
     /**
      * @var string
      */
@@ -24,19 +25,42 @@ class Client
     /**
      * @var string
      */
-    public $downloadToken;
+    public $downloadSignKey;
 
-    public function __construct($guzzle = ['timeout' => 15])
-    {
-        $this->guzzle = new \GuzzleHttp\Client($guzzle);
-    }
+    /**
+     * @var GuzzleClient
+     */
+    private $guzzle;
 
-    public function getUploadUrl()
+    /**
+     * Client constructor.
+     * @param null|GuzzleClient $guzzle
+     * @param string $projectName
+     * @param string $uploadToken
+     * @param string $downloadSignKey
+     * @param string $serverName
+     */
+    public function __construct(
+        string $projectName,
+        string $uploadToken,
+        string $downloadSignKey,
+        string $serverName,
+        GuzzleClient $guzzle = null
+    )
     {
-        return trim($this->serverName, '/')
-                . '/upload'
-                . '/' . $this->projectName
-                . '/' . $this->uploadToken;
+        if (!$guzzle) {
+            $guzzle = new GuzzleClient(['
+                timeout' => 15,
+                'base_uri' => $serverName,
+            ]);
+        }
+
+        $this->uploadToken = $uploadToken;
+        $this->downloadSignKey = $downloadSignKey;
+        $this->serverName = $serverName;
+        $this->projectName = $projectName;
+
+        $this->guzzle = $guzzle;
     }
 
     public function upload($files)
@@ -51,47 +75,19 @@ class Client
             ];
         }
 
-        $response = $this->guzzle->request(
-            'POST',
-            $this->getUploadUrl(),
-            ['multipart' => $multipart]
+        $response = $this->guzzle->post(
+            'upload',
+            [
+                'multipart' => $multipart,
+                'headers' => $this->getHeaders(),
+            ]
         );
 
         if ($response->getStatusCode() === 200) {
             return json_decode($response->getBody(), true);
         }
-    }
 
-    /**
-     * @param array $urls
-     * @return array
-     */
-    public function uploadByUrl($urls)
-    {
-        $urls = (array) $urls;
-        $urls = array_combine($urls, $urls);
-
-        $files = [];
-        foreach ($urls as $key => $url) {
-            $tempPath = tempnam('/tmp', 'file_storage_');
-
-            try {
-                $this->guzzle->request('GET', $url, ['sink' => $tempPath]);
-            } catch (\Exception $e) {
-                $urls[basename($key)] = false;
-                unset($urls[$key]);
-
-                continue;
-            }
-
-            $files[] = $tempPath;
-            unset($urls[$key]);
-        }
-
-        return array_merge(
-            $files ? $this->upload($files) : [],
-            $urls
-        );
+        return false;
     }
 
     /**
@@ -99,70 +95,24 @@ class Client
      * @param array $params
      * @return null|string
      */
-    public function get($hash, array $params = [])
+    public function makeUrl($hash, array $params = [])
     {
         if (!$hash) {
             return null;
         }
 
-        $pathInfo = pathinfo($hash);
-        $fileName = $pathInfo['filename'];
-
-        if (!empty($params['f'])) {
-            $pathInfo['extension'] = $params['f'];
-            unset($params['f']);
-        }
-
-        ksort($params);
-
-        $encodedParams = $this->encodeParams($params);
-
-        $result = $this->serverName
-            . '/' . $fileName
-            . '_' . $this->internalHash($hash, $encodedParams)
-            . $encodedParams;
-
-        if (array_key_exists('translit', $params)) {
-            $result .= '/' . $params['translit'];
-        }
-
-        if (!empty($pathInfo['extension'])) {
-            $result .='.'.$pathInfo['extension'];
-        }
-
-        return $result;
+        $urlBuilder = UrlBuilderFactory::create('', $this->downloadSignKey);
+        return $urlBuilder->getUrl($hash, $params);
     }
 
     /**
-     * @param array $params
-     * @return string
+     * @return array
      */
-    private function encodeParams(array $params)
+    private function getHeaders()
     {
-        $result = '';
-        foreach ($params as $key => $value) {
-            $result .= '_'.$key.'-'.$value;
-        }
-        return $result;
-    }
-
-    private static function internalBaseConvert($number, $fromBase, $toBase)
-    {
-        return gmp_strval(gmp_init($number, $fromBase), $toBase);
-    }
-
-    /**
-     * @param $filePath
-     * @param $params
-     * @return string
-     */
-    private function internalHash($filePath, $params)
-    {
-        $hash = hash(
-            'crc32',
-            $this->downloadToken . $filePath . $params . $this->downloadToken
-        );
-
-        return str_pad(self::internalBaseConvert($hash, 16, 36), 5, '0', STR_PAD_LEFT);
+        return [
+            'X-Project' => $this->projectName,
+            'X-Token' => $this->uploadToken,
+        ];
     }
 }
