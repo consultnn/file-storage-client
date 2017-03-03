@@ -84,7 +84,7 @@ class Client
         );
 
         if ($response->getStatusCode() === 200) {
-            return json_decode($response->getBody(), true);
+            return json_decode($response->getBody()->getContents(), true);
         }
 
         return false;
