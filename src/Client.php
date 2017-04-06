@@ -63,12 +63,20 @@ class Client
         $this->guzzle = $guzzle;
     }
 
+    /**
+     * @param $files
+     * @return bool|mixed
+     */
     public function upload($files)
     {
         $files = (array) $files;
 
         $multipart = [];
         foreach ($files as $file) {
+            if (filter_var($file, FILTER_VALIDATE_URL) !== FALSE) {
+                $file = $this->getFileFromUrl($file);
+            }
+
             $multipart[] = [
                 'name'     => basename($file),
                 'contents' => fopen($file, 'r')
@@ -84,10 +92,25 @@ class Client
         );
 
         if ($response->getStatusCode() === 200) {
-            return json_decode($response->getBody()->getContents(), true);
+            return json_decode($response->getBody(), true);
         }
 
         return false;
+    }
+
+    /**
+     * Store image from url to file
+     *
+     * @param $url
+     * @return string
+     */
+    private function getFileFromUrl($url)
+    {
+        $tempPath = tempnam('/tmp', 'file_storage_');
+
+        $this->guzzle->request('GET', $url, ['sink' => $tempPath]);
+
+        return $tempPath;
     }
 
     /**
